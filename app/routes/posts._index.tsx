@@ -38,6 +38,7 @@ export default function Posts() {
               >
                 {post.title}
               </Link>
+              <div className="font-small ">{post.createdAt}</div>
             </li>
           ))}
         </ul>

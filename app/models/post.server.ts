@@ -15,10 +15,11 @@ export async function createPost(
     return prisma.post.create({ data: post });
 }
 
-export function updatePost(
+export async function updatePost(
+    slug:string,
     post: Pick<Post, "slug" | "title" |"markdown">) {
     return prisma.post.update({
-        where: post,
+        where: {slug},
         data: post
     });
 }
