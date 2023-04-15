@@ -40,7 +40,7 @@ export const action = async ({ request }: ActionArgs) => {
 
     await createPost({ title, slug, markdown });
 
-    return redirect("/post/admin");
+    return redirect("/posts/admin");
 }
 
 const inputClassName = `w-full rounded border border-gray-500 px-2 py-1 text-lg`;
