@@ -1,9 +1,10 @@
-import type { LoaderArgs } from "@remix-run/node";
+import { ActionArgs, LoaderArgs, redirect } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
-import { getPost } from "~/models/post.server";
+import { isRouteErrorResponse, useLoaderData, useRouteError } from "@remix-run/react";
+import { deletePost, getPost } from "~/models/post.server";
 import {marked} from "marked";
 import invariant from "tiny-invariant";
+import { requireUserId } from "~/session.server";
 
 export const loader = async ({ params }: LoaderArgs) => {
   invariant(params.slug, `params.slug is required`);
@@ -25,4 +26,22 @@ export default function PostSlug() {
       <div dangerouslySetInnerHTML={{__html:html}}></div>
     </main>
   );
+}
+
+export function ErrorBoundary() {
+  const error = useRouteError();
+
+  if (error instanceof Error) {
+    return <div>An unexpected error occurred: {error.message}</div>;
+  }
+
+  if (!isRouteErrorResponse(error)) {
+    return <h1>Unknown Error</h1>;
+  }
+
+  if (error.status === 404) {
+    return <div>Note not found</div>;
+  }
+
+  return <div>An unexpected error occurred: {error.statusText}</div>;
 }
