@@ -34,11 +34,11 @@ export default function Posts() {
             <li key={post.slug}>
               <Link
                 to={post.slug}
-                className="text-blue-600 underline"
+                className="text-2xl text-blue-600 "
               >
                 {post.title}
               </Link>
-              <div className="font-small ">{post.createdAt}</div>
+              <div className="font-small ">{post.createdAt.slice(0,10)}</div>
             </li>
           ))}
         </ul>

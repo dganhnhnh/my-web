@@ -25,8 +25,8 @@ export async function updatePost(
 }
 
 export function deletePost(
-    post: Pick<Post, "title">) {
+    slug:string) {
     return prisma.post.deleteMany({
-        where: post,
+        where: {slug},
     });
 }

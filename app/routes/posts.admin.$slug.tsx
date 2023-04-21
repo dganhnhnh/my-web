@@ -2,26 +2,32 @@ import { Form, useActionData, useLoaderData, useNavigation } from "@remix-run/re
 import { ActionArgs, json, LoaderArgs, redirect } from "@remix-run/node";
 import invariant from "tiny-invariant";
 
-import { createPost, getPost, updatePost } from "~/models/post.server";
-import { marked } from "marked";
+import { createPost, deletePost, getPost, updatePost } from "~/models/post.server";
 
-export const loader = async ({  params }: LoaderArgs) => {
+export const loader = async ({ params }: LoaderArgs) => {
     invariant(params.slug, `params.slug is required`);
 
-    if(params.slug === 'new'){
+    if (params.slug === 'new') {
         return json({});
-    }else{
+    } else {
         const post = await getPost(params.slug!);
         invariant(post, `Post not found: ${params.slug}`);
-        return json({post})
+        return json({ post })
     }
-    
-    
+
 };
 
-export const action = async ({ request,params }: ActionArgs) => {
+export const action = async ({ request, params }: ActionArgs) => {
     const formData = await request.formData();
+
+    const intent=formData.get('intent')
     const title = formData.get("title");
+
+    if(intent === 'delete'){
+        await deletePost(params.slug)
+        return redirect("/posts/admin")
+    }
+
     const slug = formData.get("slug");
     const markdown = formData.get("markdown");
 
@@ -50,10 +56,10 @@ export const action = async ({ request,params }: ActionArgs) => {
         "markdown must be a string"
     );
 
-    if(params.slug === 'new'){
+    if (params.slug === 'new') {
         await createPost({ title, slug, markdown });
     }
-    else{
+    else {
         await updatePost(params.slug, { title, slug, markdown });
     }
 
@@ -65,15 +71,13 @@ const inputClassName = `w-full rounded border border-gray-500 px-2 py-1 text-lg`
 export default function NewPost() {
     const errors = useActionData<typeof action>()
     const data = useLoaderData<typeof loader>()
-
     const navigation = useNavigation();
-    const isCreating = Boolean(
-        navigation.state === "submitting"
-    );
+    const isCreating = Boolean(navigation.state === "submitting");
+    const isNewPost = !data.post
 
     return (
-        <Form method="post" 
-                key={data.post?.slug ?? 'new'}
+        <Form method="post"
+            key={data.post?.slug ?? 'new'}
         >
             <p>
                 <label>
@@ -120,16 +124,32 @@ export default function NewPost() {
                     defaultValue={data.post?.markdown}
                 />
             </p>
-            <p className="text-right">
+            <div className="text-right" id="">
+                {isNewPost ? 
+                null : (
+                    <button
+                    type="submit"
+                    name="intent"
+                    value="delete"
+                    className="rounded bg-red-500 py-2 px-4 text-white hover:bg-red-600 focus:bg-red-400 disabled:bg-red-300"
+                    // disabled={isCreating}
+                >
+                    Delete Post
+
+                </button>
+                )}
+                
                 <button
                     type="submit"
+                    name="intent"
+                    value={isNewPost?"create":"update"}
                     className="rounded bg-blue-500 py-2 px-4 text-white hover:bg-blue-600 focus:bg-blue-400 disabled:bg-blue-300"
                     disabled={isCreating}
                 >
-                    {isCreating ? "Creating..." : "Create Post"}
+                    {isNewPost?(isCreating ? "Creating..." : "Create Post"):"Edit Post"}
 
                 </button>
-            </p>
+            </div>
         </Form>
     );
 }
